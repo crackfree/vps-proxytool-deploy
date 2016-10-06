@@ -41,7 +41,7 @@ function ocserv_install()
 	wget https://raw.githubusercontent.com/jannerchang/Ocserv-install-script-for-CentOS-RHEL-7/master/change-to-ca.sh
 	bash change-to-ca.sh
 
-	sed   's/$$/$$/g'  /usr/local/etc/ocserv/ocserv.conf
+	sed   -i 's/$$/$$/g'  /usr/local/etc/ocserv/ocserv.conf
 	cd /root
 	tar cvf  ocserv-cert.tar  /usr/local/etc/ocserv/ca  
 	service ocserv restart
