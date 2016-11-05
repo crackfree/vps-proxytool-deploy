@@ -281,7 +281,7 @@ function ssr_install()
 function libsodium_install()
 {	
 	
-	debug function libsodium_install()''	
+	debug 'function libsodium_install()'
 	
 	${PM} -y install libsodium
 
@@ -334,7 +334,7 @@ function debian_config()
 	service cron start
 
 	which systemctl &&  systemctl enable cron
-	
+
 }
 
 
