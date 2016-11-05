@@ -1,38 +1,193 @@
-#! /bin/bash
+#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+export PATH
 
 set -x
-host_address=''
 
-base_package='sudo  wget curl     python   python-pip  fail2ban  git   supervisor  iptables gcc autoconf'
+host_address=""
+
+base_package='sudo  wget curl    python   python-pip  fail2ban  git   supervisor  iptables gcc autoconf cron'
 extra_package='screen    htop   vim'
-special_package='libsodium'
+special_package=''
 
-centos_package='chkconfig'
-debian_package=''
+centos_package='chkconfig yum-cron python-m2crypto'
+debian_package="unattended-upgrades build-essential python-m2crypto"
 
 
 
-function iptables_config()
+
+
+#取操作系统的名称
+Get_Dist_Name()
 {
-	#iptables-configure
-	#iptables -A INPUT -p icmp  -s 0/0 -j DROP
+    if grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
+        DISTRO='CentOS'
+        PM='yum'
+    elif grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/*-release; then
+        DISTRO='Debian'
+        PM='apt-get'
+    elif grep -Eqi "Ubuntu" /etc/issue || grep -Eq "Ubuntu" /etc/*-release; then
+        DISTRO='Ubuntu'
+        PM='apt-get'
+	else
+        DISTRO='unknow'
+    fi
+    Get_OS_Bit
+}
 
-
-	##ping
-	iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -j DROP
-	iptables -A INPUT -p icmp --icmp-type 0 -s 0/0 -j ACCEPT
-	iptables -A OUTPUT -p icmp --icmp-type 0 -s ${host_address} -j DROP
-	iptables -A OUTPUT -p icmp --icmp-type 8 -s ${host_address} -j ACCEPT
-
-
-	#nat
-	iptables -t nat -A POSTROUTING  -j MASQUERADE
-
-	iptables-save > /etc/iptables.bak
+Get_OS_Bit()
+{
+    if [[ `getconf WORD_BIT` = '32' && `getconf LONG_BIT` = '64' ]] ; then
+        ver3='x64'
+    else
+        ver3='x32'
+    fi
 }
 
 
+Get_Dist_Name
+
+
+#安装相应的软件
+if [ "$DISTRO" == "CentOS" ];then
+	yum install -y redhat-lsb curl net-tools
+elif [ "$DISTRO" == "Debian" ];then
+	apt-get update
+	apt-get install -y lsb-release curl
+elif [ "$DISTRO" == "Ubuntu" ];then
+	apt-get update
+	apt-get install -y lsb-release curl
+else
+	echo "一键脚本暂时只支持centos，ubuntu和debian的安装，其他系统请选择手动安装"
+	exit 1
+fi
+
+
+
+release=$DISTRO
+#发行版本
+if [ "$release" == "Debian" ]; then
+	ver1str="lsb_release -rs | awk -F '.' '{ print \$1 }'"
+else
+	ver1str="lsb_release -rs | awk -F '.' '{ print \$1\".\"\$2 }'"
+fi
+ver1=$(eval $ver1str)
+#ver11=`echo $ver1 | awk -F '.' '{ print $1 }'`
+
+#内核版本
+ver2=`uname -r`
+
+
+
+
+
+
+#install packages
+function package_install()
+{
+
+	packageslist_update
+
+	#install base_package
+	for item in ${base_package}; do
+		${PM} -y install $item  2 >> deploy.err
+	done
+	del item
+
+	#install extra_package
+	for item in ${extra_package}; do
+		${PM} -y install $item  2 >> deploy.err
+	done
+	del item
+
+
+
+	#install special_package
+	for item in ${special_package}; do
+		${PM} -y install $item  2 >> deploy.err
+	done
+	del item
+
+
+	libsodium_install	
+
+	ss_install
+
+	ssr_install
+
+	ocserv_install
+
+	serverspeed_install
+
+	finalspeed_install
+
+	case $DISTRO in
+		Ubuntu )
+		debian_install
+			;;
+		Debian )
+		debian_install
+			;;
+		CentOS )
+		centos_install
+			;;
+	esac
+
+
+}
+
+
+function packageslist_update()
+{
+	if [[  "$DISTRO"x = "Ubuntu"x -o "$DISTRO"x = "Debian"x ]]; then
+		${PM} update
+
+	elif [[ "DISTRO"x = "CentOS" ]]; then
+		${PM} check-update
+	fi
+}
+
+
+
+
+function debian_install()
+{
+	
+
+}
+
+
+
+
+function centos_install()
+{
+
+}
+
+
+
+#each  package install
+
 function ocserv_install()
+{
+
+	case ${DISTRO} in
+		Ubuntu )
+		
+			;;
+		Debian )
+		
+			;;
+		CentOS )
+		centos_ocserv_install
+			;;
+	esac
+
+
+}
+
+
+function centos_ocserv_install()
 {
 	wget https://raw.githubusercontent.com/travislee8964/Ocserv-install-script-for-CentOS-RHEL-7/master/ocserv-install-script-for-centos7.sh
 	sh ocserv-install-script-for-centos7.sh
@@ -40,8 +195,7 @@ function ocserv_install()
 	sh build-ca.sh
 	wget https://raw.githubusercontent.com/jannerchang/Ocserv-install-script-for-CentOS-RHEL-7/master/change-to-ca.sh
 	bash change-to-ca.sh
-
-	sed   -i 's/$$/$$/g'  /usr/local/etc/ocserv/ocserv.conf
+	# sed   -i 's/$$/$$/g'  /usr/local/etc/ocserv/ocserv.conf
 	cd /root
 	tar cvf  ocserv-cert.tar  /usr/local/etc/ocserv/ca  
 	service ocserv restart
@@ -73,23 +227,16 @@ function serverspeed_install()
 }
 
 
-function ruisu()
+
+
+function ss_install()
 {
-	serverspeed_install
+	pip install shadowsocks
 }
-
-
 
 function ssr_install()
 {
-	##shadowsocks-rss
-	apt-get install m2crypto git build-essential  -y
-	cd ~
-	wget https://github.com/jedisct1/libsodium/releases/download/1.0.10/libsodium-1.0.10.tar.gz
-	tar xf libsodium-1.0.10.tar.gz && cd libsodium-1.0.10
-	./configure && make -j2 && make install
-	ldconfig
-	
+	##shadowsocks-rss	
 	cd /opt/
 	git clone -b manyuser https://github.com/breakwa11/shadowsocks.git
 	cd  /opt/shadowsocks/shadowsocks
@@ -98,52 +245,86 @@ function ssr_install()
 
 
 
-function debian_install()
-{
-	apt-get update #/
-	#&& apt-get upgrade -y
 
-	#essential
-	apt-get install $base_package   -y
-	apt-get install $extra_package -y
-	apt-get install $debian_package -y
-	apt-get install $special_package -y
+function libsodium_install()
+{	
+	
+	${PM} -y install libsodium
 
-	#ssh configure
-	##ssh time extend
-	echo "ClientAliveInterval 60" >>/etc/ssh/sshd_config
-
-
-
-	#proxy
-	pip install shadowsocks
-
-
-	ssr_install
-
+	if [[ $? -ne '0' ]]; then
+		cd ~
+		wget https://github.com/jedisct1/libsodium/releases/download/1.0.10/libsodium-1.0.10.tar.gz
+		tar xf libsodium-1.0.10.tar.gz && cd libsodium-1.0.10
+		./configure && make -j2 && make install
+		ldconfig
+	fi
 	
 
 }
+##end each package install
 
 
 
+#system config
 
-function centos_install()
+function system_config()
 {
-	yum check-update
-	yum -y install $base_package
-	yum -y install $extra_package
+	iptables_config
 
 
 	#ssh configure
 	##ssh time extend
 	echo "ClientAliveInterval 60" >>/etc/ssh/sshd_config
 
-	#proxy
-	pip install shadowsocks
+	case ${DISTRO} in
+		Ubuntu )
+		debian_config
+			;;
+		Debian )
+		debian_config
+			;;
+		CentOS )
+		centos_config
+			;;
+	esac
 
-	ssr_install
 }
+
+
+
+function debian_config()
+{
+	service crond start
+}
+
+
+function centos_config()
+{
+	chkconfig --level  345  crond on
+	service crond start
+}
+
+
+
+function iptables_config()
+{
+	#iptables-configure
+	#iptables -A INPUT -p icmp  -s 0/0 -j DROP
+
+
+	##ping
+	iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -j DROP
+	iptables -A INPUT -p icmp --icmp-type 0 -s 0/0 -j ACCEPT
+	# iptables -A OUTPUT -p icmp --icmp-type 0 -s ${host_address} -j DROP
+	# iptables -A OUTPUT -p icmp --icmp-type 8 -s ${host_address} -j ACCEPT
+	
+    
+	#nat
+	iptables -t nat -A POSTROUTING  -j MASQUERADE
+
+	iptables-save > /etc/iptables.bak
+}
+##end system config
 
 
 
@@ -155,16 +336,22 @@ function main()
 	# 	exit 1
 	# fi
 
-	if [[ -f /etc/redhat-release  ]]; then
-		#statements
-		centos_install
-	fi
+	Get_Dist_Name
 
 
-	if [[ -f /etc/debian_version ]]; then
-		#statements
-		debian_install
-	fi
+	echo "================================================="
+	echo "操作系统：$release "
+	echo "发行版本：$ver1 "
+	echo "内核版本：$ver2 "
+	echo "位数：$ver3 "
+	echo "================================================="
+
+	package_install
+
+
+	system_config
+
+
 
 }
 
@@ -176,9 +363,3 @@ main
 
 
 set +x
-
-
-
-
-
-
