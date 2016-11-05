@@ -47,7 +47,7 @@ Get_OS_Bit()
 
 function Get_System_Info()
 {
-	
+
 	Get_Dist_Name
 	#安装相应的软件
 	if [ "$DISTRO" == "CentOS" ];then
@@ -116,7 +116,7 @@ function package_install()
 	del item
 
 
-	libsodium_install	
+	# libsodium_install	
 
 	ss_install
 
@@ -126,7 +126,7 @@ function package_install()
 
 	serverspeed_install
 
-	finalspeed_install
+	# finalspeed_install
 
 	case $DISTRO in
 		Ubuntu )
@@ -147,10 +147,10 @@ function package_install()
 function packageslist_update()
 {
 	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" :]; then
-		${PM} update
+		${PM} update -y
 
 	elif [[ "DISTRO"x = "CentOS"x ]]; then
-		${PM} check-update
+		${PM} check-update -y
 	else
 		echo "packageslist_update failed."
 	fi
@@ -159,16 +159,16 @@ function packageslist_update()
 
 
 
-# function debian_install()
-# {
-# }
+function debian_install()
+{
+}
 
 
 
 
-# function centos_install()
-# {
-# }
+function centos_install()
+{
+}
 
 
 
