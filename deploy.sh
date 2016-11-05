@@ -2,17 +2,30 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export PATH
 
-set -x
+# set -x
+#debug mode
+readonly debug_flag=true
 
-host_address=""
 
-base_package='sudo  wget curl    python   python-pip  fail2ban  git   supervisor  iptables gcc autoconf cron'
-extra_package='screen    htop   vim'
-special_package=''
+#packages you need to install
+readonly base_package='sudo  wget curl    python   python-pip  fail2ban  git   supervisor  iptables gcc autoconf cron iptables'
+readonly extra_package='screen    htop   vim'
+readonly special_package=''
 
-centos_package='chkconfig yum-cron python-m2crypto'
-debian_package="unattended-upgrades build-essential python-m2crypto"
+readonly centos_package='chkconfig yum-cron python-m2crypto'
+readonly debian_package="unattended-upgrades build-essential python-m2crypto"
 
+
+
+# readonly host_address=""
+
+#echo debug info if debug mode  enabled
+function debug()
+{
+	if [[ debug_flag -eq true ]]; then
+		echo $1
+	fi
+}
 
 
 
@@ -76,11 +89,15 @@ function Get_System_Info()
 	#ver11=`echo $ver1 | awk -F '.' '{ print $1 }'`
 
 	#内核版本
-	ver2=`uname -r`	
+	ver2=`uname -r`
+
+
+	#check system env LC_ALL(language locale)
+	if [[ $LC_ALL -eq '' ]]; then
+		export LC_ALL=C
+	fi
+		
 }
-
-
-
 
 
 
@@ -89,6 +106,7 @@ function Get_System_Info()
 #install packages
 function package_install()
 {
+	debug 'function package_install()'
 
 	packageslist_update
 
@@ -143,9 +161,10 @@ function package_install()
 
 }
 
-
+#do the package list update  such as yum check-update
 function packageslist_update()
 {
+	debug 'function packageslist_update()'
 	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" :]; then
 		${PM} update -y
 
@@ -181,10 +200,10 @@ function ocserv_install()
 
 	case ${DISTRO} in
 		Ubuntu )
-		
+		:
 			;;
 		Debian )
-		
+		:
 			;;
 		CentOS )
 		centos_ocserv_install
@@ -197,6 +216,7 @@ function ocserv_install()
 
 function centos_ocserv_install()
 {
+	debug 'function centos_ocserv_install()'
 	wget https://raw.githubusercontent.com/travislee8964/Ocserv-install-script-for-CentOS-RHEL-7/master/ocserv-install-script-for-centos7.sh
 	sh ocserv-install-script-for-centos7.sh
 	wget https://raw.githubusercontent.com/jannerchang/Ocserv-install-script-for-CentOS-RHEL-7/master/build-ca.sh
@@ -214,6 +234,7 @@ function centos_ocserv_install()
 
 function finalspeed_install()
 {
+	debug 'function finalspeed_install()'
 	##finalspeed
 	cd ~
 	rm -f install_fs.sh
@@ -222,14 +243,15 @@ function finalspeed_install()
 	./install_fs.sh 2>&1 | tee install.log
 	chmod +x  /fs/*.sh
 
-	echo 0 3 * * *  sh /fs/restart.sh  >>/etc/crontab
-	echo 0 15 * * *  sh /fs/restart.sh  >>/etc/crontab
+	echo '0 3 * * *  sh /fs/restart.sh'  >>/etc/crontab
+	echo '0 15 * * *  sh /fs/restart.sh'  >>/etc/crontab
 }
 
 
 
 function serverspeed_install()
 {	
+	debug 'function serverspeed_install()'
 	cd ~
 	wget -N --no-check-certificate https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh && bash serverspeeder-all.sh
 }
@@ -239,12 +261,13 @@ function serverspeed_install()
 
 function ss_install()
 {
-	echo 'function ss_install()'
+	debug 'function ss_install()'
 	pip install shadowsocks
 }
 
 function ssr_install()
 {
+	debug 'function ssr_install()'
 	##shadowsocks-rss	
 	cd /opt/
 	git clone -b manyuser https://github.com/breakwa11/shadowsocks.git
@@ -257,6 +280,8 @@ function ssr_install()
 
 function libsodium_install()
 {	
+	
+	debug function libsodium_install()''	
 	
 	${PM} -y install libsodium
 
@@ -278,7 +303,7 @@ function libsodium_install()
 
 function system_config()
 {
-	echo 'function system_config()'
+	debug 'function system_config()'
 
 	iptables_config
 
@@ -305,13 +330,17 @@ function system_config()
 
 function debian_config()
 {
-	echo 'function debian_config()'
+	debug 'function debian_config()'
 	service cron start
+
+	which systemctl &&  systemctl enable cron
+	
 }
 
 
 function centos_config()
 {
+	debug 'function centos_config()'
 	chkconfig --level  345  crond on
 	service cron start
 	service crond start
@@ -321,7 +350,7 @@ function centos_config()
 
 function iptables_config()
 {
-	echo 'function iptables_config()'
+	debug 'function iptables_config()'
 	#iptables-configure
 	#iptables -A INPUT -p icmp  -s 0/0 -j DROP
 
@@ -344,11 +373,7 @@ function iptables_config()
 
 function main()
 {
-	# if [[  ! host_address ]]; then
-	# 	#statements
-	# 	echo ERR host_address is not set.
-	# 	exit 1
-	# fi
+
 
 	Get_System_Info
 
