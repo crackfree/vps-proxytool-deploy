@@ -161,6 +161,7 @@ function packageslist_update()
 
 function debian_install()
 {
+	:
 }
 
 
@@ -168,6 +169,7 @@ function debian_install()
 
 function centos_install()
 {
+	:
 }
 
 
@@ -237,6 +239,7 @@ function serverspeed_install()
 
 function ss_install()
 {
+	echo 'function ss_install()'
 	pip install shadowsocks
 }
 
@@ -275,6 +278,8 @@ function libsodium_install()
 
 function system_config()
 {
+	echo 'function system_config()'
+
 	iptables_config
 
 
@@ -300,13 +305,15 @@ function system_config()
 
 function debian_config()
 {
-	service crond start
+	echo 'function debian_config()'
+	service cron start
 }
 
 
 function centos_config()
 {
 	chkconfig --level  345  crond on
+	service cron start
 	service crond start
 }
 
@@ -314,6 +321,7 @@ function centos_config()
 
 function iptables_config()
 {
+	echo 'function iptables_config()'
 	#iptables-configure
 	#iptables -A INPUT -p icmp  -s 0/0 -j DROP
 
