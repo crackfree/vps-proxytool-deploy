@@ -90,13 +90,15 @@ function package_install()
 
 	#install base_package
 	for item in ${base_package}; do
-		${PM} -y install $item  2 >> deploy.err
+		${PM} -y install $item    2>>deploy.err  1>/dev/null
+		sleep 3
 	done
 	del item
 
 	#install extra_package
 	for item in ${extra_package}; do
-		${PM} -y install $item  2 >> deploy.err
+		${PM} -y install $item  2>>deploy.err  1>/dev/null
+		sleep 3
 	done
 	del item
 
@@ -104,7 +106,8 @@ function package_install()
 
 	#install special_package
 	for item in ${special_package}; do
-		${PM} -y install $item  2 >> deploy.err
+		${PM} -y install $item  2>>deploy.err  1>/dev/null
+		sleep 3
 	done
 	del item
 
