@@ -45,37 +45,41 @@ Get_OS_Bit()
 }
 
 
-Get_Dist_Name
+function Get_System_Info()
+{
+	
+	Get_Dist_Name
+	#安装相应的软件
+	if [ "$DISTRO" == "CentOS" ];then
+		yum install -y redhat-lsb curl net-tools
+	elif [ "$DISTRO" == "Debian" ];then
+		#apt-get update
+		apt-get install -y lsb-release curl
+	elif [ "$DISTRO" == "Ubuntu" ];then
+		# apt-get update
+		apt-get install -y lsb-release curl
+	else
+		echo "一键脚本暂时只支持centos，ubuntu和debian的安装，其他系统请选择手动安装"
+		exit 1
+	fi
 
 
-#安装相应的软件
-# if [ "$DISTRO" == "CentOS" ];then
-# 	yum install -y redhat-lsb curl net-tools
-# elif [ "$DISTRO" == "Debian" ];then
-# 	apt-get update
-# 	apt-get install -y lsb-release curl
-# elif [ "$DISTRO" == "Ubuntu" ];then
-# 	apt-get update
-# 	apt-get install -y lsb-release curl
-# else
-# 	echo "一键脚本暂时只支持centos，ubuntu和debian的安装，其他系统请选择手动安装"
-# 	exit 1
-# fi
+
+	release=$DISTRO
+	#发行版本
+	if [ "$release" == "Debian" ]; then
+		ver1str="lsb_release -rs | awk -F '.' '{ print \$1 }'"
+	else
+		ver1str="lsb_release -rs | awk -F '.' '{ print \$1\".\"\$2 }'"
+	fi
+	ver1=$(eval $ver1str)
+	#ver11=`echo $ver1 | awk -F '.' '{ print $1 }'`
+
+	#内核版本
+	ver2=`uname -r`	
+}
 
 
-
-release=$DISTRO
-#发行版本
-if [ "$release" == "Debian" ]; then
-	ver1str="lsb_release -rs | awk -F '.' '{ print \$1 }'"
-else
-	ver1str="lsb_release -rs | awk -F '.' '{ print \$1\".\"\$2 }'"
-fi
-ver1=$(eval $ver1str)
-#ver11=`echo $ver1 | awk -F '.' '{ print $1 }'`
-
-#内核版本
-ver2=`uname -r`
 
 
 
@@ -91,14 +95,14 @@ function package_install()
 	#install base_package
 	for item in ${base_package}; do
 		${PM} -y install $item    2>>deploy.err  1>/dev/null
-		sleep 3
+		# sleep 3
 	done
 	del item
 
 	#install extra_package
 	for item in ${extra_package}; do
 		${PM} -y install $item  2>>deploy.err  1>/dev/null
-		sleep 3
+		# sleep 3
 	done
 	del item
 
@@ -107,7 +111,7 @@ function package_install()
 	#install special_package
 	for item in ${special_package}; do
 		${PM} -y install $item  2>>deploy.err  1>/dev/null
-		sleep 3
+		# sleep 3
 	done
 	del item
 
@@ -338,7 +342,7 @@ function main()
 	# 	exit 1
 	# fi
 
-	Get_Dist_Name
+	Get_System_Info
 
 
 	echo "================================================="
