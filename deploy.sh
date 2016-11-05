@@ -139,7 +139,7 @@ function package_install()
 
 function packageslist_update()
 {
-	if [[  "$DISTRO"x = "Ubuntu"x -o "$DISTRO"x = "Debian"x ]]; then
+	if [[  ("$DISTRO"x = "Ubuntu"x) -o ("$DISTRO"x = "Debian"x) ]]; then
 		${PM} update
 
 	elif [[ "DISTRO"x = "CentOS" ]]; then
