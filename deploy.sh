@@ -96,6 +96,7 @@ function Get_System_Info()
 	#check system env LC_ALL(language locale)
 	if [[ $LC_ALL -eq '' ]]; then
 		export LC_ALL=C
+		source ~/.bashrc
 	fi
 		
 }
@@ -143,8 +144,8 @@ function package_install()
 
 	ocserv_install
 
-	# serverspeed_install
-
+	serverspeed_install
+	
 	# finalspeed_install
 
 	case $DISTRO in
@@ -166,16 +167,16 @@ function package_install()
 function packageslist_update()
 {
 	debug 'function packageslist_update()'
-	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" ]; then
+	if [[ $DISTRO == "Ubuntu" ]]; then
 		${PM} update -y
-
-	elif [[ "DISTRO"x = "CentOS"x ]]; then
-		${PM} check-update -y
+	elif [[ $DISTRO =="Debian" ]]; then
+		${PM} update -y
+	elif [[ "$DISTRO"x = "CentOS"x ]]; then
+		${PM} check-update
 	else
 		echo "packageslist_update failed."
 	fi
 }
-
 
 
 
