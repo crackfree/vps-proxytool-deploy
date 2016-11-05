@@ -1,8 +1,8 @@
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export PATH
-
 # set -x
+
 #debug mode
 readonly debug_flag=true
 
@@ -25,6 +25,7 @@ function debug()
 	if [[ debug_flag -eq true ]]; then
 		echo $1
 	fi
+
 }
 
 
@@ -115,14 +116,14 @@ function package_install()
 		${PM} -y install $item    2>>deploy.err  1>/dev/null
 		# sleep 3
 	done
-	del item
+	unset item
 
 	#install extra_package
 	for item in ${extra_package}; do
 		${PM} -y install $item  2>>deploy.err  1>/dev/null
 		# sleep 3
 	done
-	del item
+	unset item
 
 
 
@@ -131,7 +132,7 @@ function package_install()
 		${PM} -y install $item  2>>deploy.err  1>/dev/null
 		# sleep 3
 	done
-	del item
+	unset item
 
 
 	# libsodium_install	
@@ -142,7 +143,7 @@ function package_install()
 
 	ocserv_install
 
-	serverspeed_install
+	# serverspeed_install
 
 	# finalspeed_install
 
@@ -165,7 +166,7 @@ function package_install()
 function packageslist_update()
 {
 	debug 'function packageslist_update()'
-	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" :]; then
+	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" ]; then
 		${PM} update -y
 
 	elif [[ "DISTRO"x = "CentOS"x ]]; then
@@ -224,8 +225,8 @@ function centos_ocserv_install()
 	wget https://raw.githubusercontent.com/jannerchang/Ocserv-install-script-for-CentOS-RHEL-7/master/change-to-ca.sh
 	bash change-to-ca.sh
 	# sed   -i 's/$$/$$/g'  /usr/local/etc/ocserv/ocserv.conf
-	cd /root
-	tar cvf  ocserv-cert.tar  /usr/local/etc/ocserv/ca  
+
+	tar cvf  ocserv-cert.tar  /usr/local/etc/ocserv/ca
 	service ocserv restart
 }
 
@@ -236,7 +237,7 @@ function finalspeed_install()
 {
 	debug 'function finalspeed_install()'
 	##finalspeed
-	cd ~
+	
 	rm -f install_fs.sh
 	wget  http://fs.d1sm.net/finalspeed/install_fs.sh
 	chmod +x install_fs.sh
@@ -252,7 +253,7 @@ function finalspeed_install()
 function serverspeed_install()
 {	
 	debug 'function serverspeed_install()'
-	cd ~
+	
 	wget -N --no-check-certificate https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh && bash serverspeeder-all.sh
 }
 
@@ -269,10 +270,11 @@ function ssr_install()
 {
 	debug 'function ssr_install()'
 	##shadowsocks-rss	
-	cd /opt/
+	pushd /opt/
 	git clone -b manyuser https://github.com/breakwa11/shadowsocks.git
 	cd  /opt/shadowsocks/shadowsocks
 	ln -s  `pwd`/server.py   /usr/bin/ssrserver
+	popd
 }
 
 
@@ -285,12 +287,15 @@ function libsodium_install()
 	
 	${PM} -y install libsodium
 
-	if [[ $? -ne '0' ]]; then
-		cd ~
-		wget https://github.com/jedisct1/libsodium/releases/download/1.0.10/libsodium-1.0.10.tar.gz
-		tar xf libsodium-1.0.10.tar.gz && cd libsodium-1.0.10
-		./configure && make -j2 && make install
-		ldconfig
+	if [[ $? -ne '0' ]]; then	
+		if [ ! -d libsodium-1.0.1 ]; then
+		    wget https://github.com/jedisct1/libsodium/releases/download/1.0.1/libsodium-1.0.1.tar.gz || exit 1
+		    tar xf libsodium-1.0.1.tar.gz || exit 1
+		fi
+		pushd libsodium-1.0.1
+		./configure && make -j2 && make install || exit 1
+		sudo ldconfig
+		popd
 	fi
 	
 
