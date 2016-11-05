@@ -49,18 +49,18 @@ Get_Dist_Name
 
 
 #安装相应的软件
-if [ "$DISTRO" == "CentOS" ];then
-	yum install -y redhat-lsb curl net-tools
-elif [ "$DISTRO" == "Debian" ];then
-	apt-get update
-	apt-get install -y lsb-release curl
-elif [ "$DISTRO" == "Ubuntu" ];then
-	apt-get update
-	apt-get install -y lsb-release curl
-else
-	echo "一键脚本暂时只支持centos，ubuntu和debian的安装，其他系统请选择手动安装"
-	exit 1
-fi
+# if [ "$DISTRO" == "CentOS" ];then
+# 	yum install -y redhat-lsb curl net-tools
+# elif [ "$DISTRO" == "Debian" ];then
+# 	apt-get update
+# 	apt-get install -y lsb-release curl
+# elif [ "$DISTRO" == "Ubuntu" ];then
+# 	apt-get update
+# 	apt-get install -y lsb-release curl
+# else
+# 	echo "一键脚本暂时只支持centos，ubuntu和debian的安装，其他系统请选择手动安装"
+# 	exit 1
+# fi
 
 
 
@@ -145,23 +145,23 @@ function packageslist_update()
 	elif [[ "DISTRO"x = "CentOS"x ]]; then
 		${PM} check-update
 	else
-		
+		echo "packageslist_update failed."
 	fi
 }
 
 
 
 
-function debian_install()
-{
-}
+# function debian_install()
+# {
+# }
 
 
 
 
-function centos_install()
-{
-}
+# function centos_install()
+# {
+# }
 
 
 
