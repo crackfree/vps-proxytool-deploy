@@ -139,11 +139,13 @@ function package_install()
 
 function packageslist_update()
 {
-	if [[  $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" ]]; then
+	if [ $DISTRO -eq "Ubuntu" -o $DISTRO -eq "Debian" :]; then
 		${PM} update
 
 	elif [[ "DISTRO"x = "CentOS"x ]]; then
 		${PM} check-update
+	else
+		
 	fi
 }
 
@@ -152,8 +154,6 @@ function packageslist_update()
 
 function debian_install()
 {
-	
-
 }
 
 
@@ -161,7 +161,6 @@ function debian_install()
 
 function centos_install()
 {
-
 }
 
 
