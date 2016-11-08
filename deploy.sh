@@ -169,7 +169,7 @@ function packageslist_update()
 	debug 'function packageslist_update()'
 	if [[ $DISTRO == "Ubuntu" ]]; then
 		${PM} update -y
-	elif [[ $DISTRO =="Debian" ]]; then
+	elif [[ $DISTRO == "Debian" ]]; then
 		${PM} update -y
 	elif [[ "$DISTRO"x = "CentOS"x ]]; then
 		${PM} check-update
